@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>CDQA</title>
+    <style>.textLayer { display: none; }</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script> 
+    <!-- Make sure your page supports utf-8 characterset. -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Load TensorFlow.js. This is required to use the qna model. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
+    <!-- Load the qna model. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"> </script>
+</head>
+
+<body class="blue-grey darken-2">
+    <div>
+        <nav class="blue-grey z-depth-3">
+            <div class="nav-wrapper">
+              <a href="#" class="brand-logo blue-grey">CDQA Bot</a>
+            </div>
+          </nav>
+    </div>
+    <div class="main-container">
+   <div class="hoverable card col s12 m6 blue-grey darken-1 extracted-data-container z-depth-1 white-text">
+   <p class="extracted_data"></p>
+   </div>
+   <div class="file-container z-depth-1 card blue-grey darken-1 hoverable">
+    <input type="file" 
+    class="filepond"
+    data-max-files="1"
+    accept=".txt">
+   </div>
+   <!--<div class="console card hoverable">
+        <div class="card-content white-text">
+            <input class="question" type="text" placeholder="Question">
+        </div>
+        <div class="card-action">
+            <p class="read">Read</p>
+            <p class="ask" disabled>Ask</p>
+        </div>
+   </div>-->
+   <div class="row">
+    <div class="col s12 m6">
+      <div class="card blue-grey darken-1 hoverable">
+        <div class="card-content white-text">
+          <span class="card-title">Interactive Console</span>
+          <input class="question flow-text" type="text" placeholder="Question">
+        </div>
+        <div class="card-action">
+          <a href="#" class="read hoverable waves-light ">Read</a>
+          <a href="#" class="ask hoverable waves-light ">Ask</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="transcript-card card white-text blue-grey darken-1 hoverable flow-text">
+   <p class="transcript"></p>
+  </div>
+</div>
+   <style>
+       *{
+           box-sizing: border-box;
+       }
+       .main-container{
+           justify-content:center;
+           align-items: center;
+       }
+       body{
+           background-color: white;
+       }
+       /*p{
+           color:white;
+       }*/
+       .filepond{
+           color:white;
+       }
+       .file-container{
+           width:50%;
+           margin-left: 10px;
+       }
+       .extracted-data-container{
+           margin-left: 10px;
+       }
+       .console{
+           display:flex;
+           flex-direction:column ;
+           border:1px solid yellow;
+           width:50%;
+       }
+       input{
+           color:white;
+       }
+       .extracted-data-container{
+           width:50%;
+       }
+       .transcript-card{
+           width:50%;
+           margin-left: 10px;
+       }
+       .card{
+           width:50%;
+       }
+   </style>
+   <script>
+
+       let modelStatus=0
+       const loadingBarContainer=document.createElement('div')
+       loadingBarContainer.classList.add('progress')
+       const loadingBar=document.createElement('div')
+       loadingBar.classList.add('indeterminate')
+       loadingBarContainer.appendChild(loadingBar)
+       const extractedDataContainer=document.querySelector('.extracted-data-container')
+       function addLoadingBar(parent){
+           parent.appendChild(loadingBarContainer)
+       }
+       function removeLoadingBar(parent){
+           parent.removeChild(loadingBarContainer)
+       }
+       //loading model
+       addLoadingBar(extractedDataContainer)
+       let model=""
+       const downloader = qna.load()    
+       downloader.then((m)=>{
+           modelStatus=1
+           model=m
+           removeLoadingBar(extractedDataContainer)
+           alert('model loaded!')
+       })
+       //user interaction
+       function addToTranscript(s){
+        const transcriptCard=document.querySelector('.transcript-card')
+        const newText=document.createElement('p')
+        newText.innerText=s
+        transcriptCard.appendChild(newText)
+       }
+       async function runScript(passage, question) {
+        if(modelStatus===0){
+            alert("model hasn't been loaded yet")
+        }
+        else{
+        console.log(passage)
+        console.log('***********')
+        console.log(question)
+        console.log('entered function')
+        //const model = await qna.load();
+        console.log('loaded model')
+        const answers = await model.findAnswers(question, passage);
+        console.log('finding answer')
+        console.log(answers)
+        addToTranscript('User:'+question)
+        try{
+        addToTranscript('Bot: '+answers[0].text)
+        }catch(err){
+            addToTranscript("Bot: Sorry, I can't answer that question based on the document provided.")
+        }
+        //const transcript=document.querySelector('.transcript')
+        //transcript.innerText=answers[0].text;
+    }
+    }
+       const readButton=document.querySelector('.read')
+        readButton.addEventListener('click',()=>{
+           const fileButton=document.querySelector('.filepond')
+           if(fileButton.files.length===1){
+               //process file here
+               const fileReader=new FileReader()
+               const file = fileButton.files[0]
+               fileReader.readAsText(file)
+               fileReader.onload=(e)=>{
+                    const rawLog=fileReader.result
+                    const textOutput=document.querySelector('.extracted_data')
+                    textOutput.innerText=rawLog
+               }
+               const askButton=document.querySelector('.ask')
+               askButton.disabled=false
+           }
+           else{
+               alert("No text files selected!")
+           }
+       })
+       const askButton=document.querySelector('.ask')
+       askButton.addEventListener('click',()=>{
+           const extractedText=document.querySelector('.extracted_data')
+           if(extractedText.innerText.length===0){
+               alert('Document hasn\'t been read')
+           }
+           else{
+                const questionText=document.querySelector('.question')
+                const passage=extractedText.innerText
+                const question=questionText.value
+                runScript(passage,question)
+           }
+       }) 
+   </script>
+</body>
+
+</html>

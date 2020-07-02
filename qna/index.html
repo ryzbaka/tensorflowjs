@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- Make sure your page supports utf-8 characterset. -->
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <!-- Load TensorFlow.js. This is required to use the qna model. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"> </script>
+    <!-- Load the qna model. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/qna"> </script>
+</head>
+<body>
+    <!-- Place your code in the script tag below. You can also use an external .js file -->
+    <label for="passage">Passage</label>
+    <input type='text' name="passage">
+    
+    <script src="./prediction_model.js"></script>
+</body>
+</html>
